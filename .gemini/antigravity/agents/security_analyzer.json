@@ -1,0 +1,7 @@
+{
+  "name": "security_analyzer",
+  "role": "threat_detection",
+  "tools": ["wazuh", "nuclei", "nmap"],
+  "parallelism": true,
+  "priority": "high"
+}

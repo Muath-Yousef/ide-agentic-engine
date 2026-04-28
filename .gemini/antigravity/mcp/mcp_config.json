@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "local-filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/workspace/knowledge/evidence",
+        "/workspace/reports"
+      ],
+      "autoStart": true
+    },
+    "git-manager": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-git",
+        "--repository",
+        "/workspace"
+      ],
+      "autoStart": true
+    },
+    "terminal-executor": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-server-bash"
+      ],
+      "autoStart": false
+    }
+  }
+}

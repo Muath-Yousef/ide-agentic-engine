@@ -1,0 +1,6 @@
+{
+  "name": "SOC_Architect_Agent",
+  "role": "Security Operations Center Automation",
+  "permissions": ["filesystem", "terminal", "mcp"],
+  "strict_mode": true
+}
