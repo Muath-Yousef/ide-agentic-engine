@@ -36,6 +36,7 @@ We have successfully established a highly secure, production-grade infrastructur
 ├── cli.py                 # Entry point for testing the Agent Engine
 ├── engine/                # Core Agentic IDE components
 │   ├── agent_orchestrator.py  # LangGraph state machine (Plan -> Execute -> Observe)
+│   ├── llm_manager.py         # The Brain: DeepSeek integration, Instructor, Token Optimization, Caching, and Streaming
 │   ├── mcp_gateway.py         # Model Context Protocol (MCP) client
 │   ├── terminal_executor.py   # Secure bash command wrapper
 │   └── workspace_context.py   # Reader for .cursorrules / .antigravityrules
@@ -44,8 +45,9 @@ We have successfully established a highly secure, production-grade infrastructur
 ├── init_project.sh        # Master setup script
 ├── justfile               # Task runner configuration
 ├── PROJECT_SPEC.md        # High-level project definition and configuration
-├── requirements.txt       # Engine dependencies (langgraph, langchain-core, etc.)
+├── requirements.txt       # Engine dependencies (langgraph, langchain-core, openai, instructor, etc.)
 ├── .env.template          # Template for required environment variables
+├── .gitignore             # Prevents secrets (like .env) from being committed
 └── HANDOFF.md             # This document
 ```
 
@@ -63,6 +65,7 @@ We have successfully established a highly secure, production-grade infrastructur
     python cli.py --prompt "Create a React login page"
     ```
 3.  **Manage Secrets:**
+    *   API keys (like `DEEP_SEEK_API_KEY` or `GEMINI_API_KEY`) are kept locally in `.env`.
     ```bash
     just decrypt  # Requires GPG passphrase to expose .env temporarily
     just encrypt  # Re-encrypts changes
@@ -73,9 +76,9 @@ We have successfully established a highly secure, production-grade infrastructur
 
 ## ⏭️ Next Steps
 
-With the foundational `engine` package and CLI entry point in place, the immediate next steps are:
+With the foundational `engine` package, the powerful `LLMManager`, and CLI entry point in place, the immediate next steps are:
 
-1.  **LLM Integration**: Connect `agent_orchestrator.py` to an actual LLM (e.g., using `langchain-google-genai` or `langchain-openai`) to replace the mock logic.
-2.  **Tool Binding**: Bind the `TerminalExecutor` and file system actions as valid tools for the LLM to invoke within the LangGraph flow.
-3.  **MCP Gateway Implementation**: Fully implement `mcp_gateway.py` using the `modelcontextprotocol` Python SDK to discover and interact with external MCP servers (e.g., filesystem, git).
+1.  **Connect the Brain**: Integrate `LLMManager` into `agent_orchestrator.py` so the LangGraph state machine uses the actual LLM (DeepSeek) instead of mock logic.
+2.  **Tool Binding**: Bind the `TerminalExecutor` and file system actions as valid tools for the LLM to invoke natively.
+3.  **Token Optimizer Implementation**: Flesh out the `TokenOptimizer` logic in `llm_manager.py` to handle advanced context compression.
 
