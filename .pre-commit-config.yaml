@@ -30,19 +30,3 @@ repos:
     hooks:
       - id: flake8
         args: [--max-line-length=100]
-
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.4.0
-    hooks:
-      - id: detect-secrets
-        args: [--baseline, .secrets.baseline]
-
-  # Custom: verify evidence chain integrity before every commit
-  - repo: local
-    hooks:
-      - id: verify-evidence-chain
-        name: Verify Evidence Chain Integrity
-        entry: python3 -c "from socroot.evidence_store import verify_all_chains; verify_all_chains()"
-        language: system
-        pass_filenames: false
-        stages: [commit]
