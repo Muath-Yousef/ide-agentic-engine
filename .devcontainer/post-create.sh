@@ -1,21 +1,33 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "🚀 Running post-create setup..."
-
-# Install basic tools
-sudo apt-get update && sudo apt-get install -y gnupg jq curl age
+echo "🚀 Setting up ide-agentic-engine development environment..."
 
 # Install Python dependencies
-if [ -f "requirements.txt" ]; then
-    pip install -r requirements.txt
+cd /workspace
+python3 -m venv venv
+./venv/bin/pip install --upgrade pip --quiet
+./venv/bin/pip install -e ".[dev]" --quiet
+
+# Install pre-commit hooks
+./venv/bin/pre-commit install
+
+# Decrypt secrets if SOPS key is available
+if command -v sops &>/dev/null && [ -f .env.enc ]; then
+    if sops -d .env.enc > .env 2>/dev/null; then
+        echo "✅ Secrets decrypted"
+    else
+        echo "⚠️  Could not decrypt secrets (SOPS key not configured)"
+    fi
 fi
 
-# Install pre-commit
-pip install pre-commit
-pre-commit install
+# Create required directories
+mkdir -p reports/output knowledge/evidence knowledge/client_profiles
 
-# Verify setup
-./init_project.sh --verify
+# Run self-check
+./venv/bin/ide-agent self-check 2>/dev/null || true
 
-echo "✅ DevContainer setup complete."
+echo ""
+echo "✅ Environment ready!"
+echo "   Run: just --list   (to see all commands)"
+echo "   Run: just scan --client myClient --target example.com"

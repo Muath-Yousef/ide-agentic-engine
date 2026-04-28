@@ -1,3 +1,10 @@
 creation_rules:
+  # Encrypt all .env files using Age public key
+  # Generate your key: age-keygen -o ~/.config/sops/age/keys.txt
+  # Then replace the age1... below with your public key
   - path_regex: \.env$
-    age: 'age1j2xjkmz58ysd6v8fh5kj9vqyu7jpmm6l2dr3xspztxm5pcjuv9dq7a9udf'
+    age: "age1j2xjkmz58ysd6v8fh5kj9vqyu7jpmm6l2dr3xspztxm5pcjuv9dq7a9udf"
+
+  # Also encrypt any secrets/ directory
+  - path_regex: secrets/.*\.yaml$
+    age: "age1j2xjkmz58ysd6v8fh5kj9vqyu7jpmm6l2dr3xspztxm5pcjuv9dq7a9udf"
