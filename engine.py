@@ -36,22 +36,33 @@ async def main():
             with open("profiles/api_keys.yaml", "w") as f:
                 yaml.dump(dummy_data, f)
 
+        from gateway.key_pool import APIKeyPool
+        from providers.openai_provider import OpenAIProvider
+        import yaml
+        import os
+        
         key_pool = APIKeyPool()
-        provider = GeminiProvider(key_pool=key_pool)
+        gemini = GeminiProvider(key_pool=key_pool)
+        openai = OpenAIProvider(key_pool=key_pool)
         gateway = MCPGateway(key_pool=key_pool)
         
-        print("\n[TEST] 1. Executing VirusTotal (Rotation Test)...")
-        res_vt = await gateway.execute_tool("virus_total_scan", {"resource": "malware.exe"})
+        print("\n[TEST] 1. Executing VirusTotal (Real Logic)...")
+        # This will use the 'placeholder_key' and likely return a 401/403
+        res_vt = await gateway.execute_tool("virus_total_scan", {"resource": "8.8.8.8"})
         print(f"Result: {res_vt}")
         
-        print("\n[TEST] 2. Executing run_command via Gateway...")
-        res_cmd = await gateway.execute_tool("run_command", {"command": "echo 'Hello from Terminal Server!'", "cwd": "."})
-        print(f"Result:\n{res_cmd}")
-        
         try:
-            print("\n[TEST] 3. Calling Gemini Provider (with Key Pool)...")
-            test_messages = [{"role": "user", "content": "Say 'Engine is online' in Arabic."}]
-            response = await provider.generate_response(test_messages)
+            print("\n[TEST] 2. Calling OpenAI Provider...")
+            test_messages = [{"role": "user", "content": "Say 'OpenAI Engine is online' in Arabic."}]
+            response = await openai.generate_response(test_messages)
+            print(f"LLM Response: {response}")
+        except Exception as e:
+            print(f"OpenAI Error: {e}")
+
+        try:
+            print("\n[TEST] 3. Calling Gemini Provider...")
+            test_messages = [{"role": "user", "content": "Say 'Gemini Engine is online' in Arabic."}]
+            response = await gemini.generate_response(test_messages)
             print(f"LLM Response: {response}")
         except Exception as e:
             print(f"LLM Response: Skipped due to API error (likely invalid/leaked key): {e}")
