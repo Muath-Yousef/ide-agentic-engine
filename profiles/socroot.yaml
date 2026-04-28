@@ -1,0 +1,16 @@
+project:
+  name: "IDE Agentic Engine"
+  version: "2.0.0"
+  description: "AI-First Agentic IDE / Development Platform"
+
+optimization:
+  enable_caching: true
+  max_terminal_lines: 100
+  use_batch_executor: true
+
+routing:
+  default_provider: "gemini"
+  rules:
+    code_generation: "anthropic"
+    file_reading: "gemini"
+    linting: "gemini"
