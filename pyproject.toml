@@ -14,6 +14,7 @@ authors = [{ name = "ide-agentic-engine contributors" }]
 dependencies = [
     "anthropic>=0.40.0",
     "instructor[anthropic]>=1.4.0",
+    "jsonref>=1.1.0",
     "langgraph>=0.2.0",
     "langchain-core>=0.3.0",
     "pydantic>=2.6.0",
@@ -31,6 +32,8 @@ dependencies = [
     "openai>=2.32.0",
     "modelcontextprotocol>=1.0.1",
     "pyyaml>=6.0.3",
+    "fastapi>=0.136.1",
+    "uvicorn>=0.46.0",
 ]
 
 [project.optional-dependencies]

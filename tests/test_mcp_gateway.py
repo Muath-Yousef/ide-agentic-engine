@@ -9,8 +9,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from engine.mcp_gateway import BatchRequest, BatchResponse, MCPGateway, ToolInvocation
-from engine.token_optimizer import TokenOptimizer
-
+from engine.optimization.token_optimizer import TokenOptimizer
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -56,9 +55,7 @@ async def test_single_tool_success(gateway: MCPGateway) -> None:
 @pytest.mark.asyncio
 async def test_unknown_tool_returns_error(gateway: MCPGateway) -> None:
     """Calling an unregistered tool should return a failure result, not raise."""
-    request = BatchRequest(
-        invocations=[ToolInvocation(tool_name="nonexistent", arguments={})]
-    )
+    request = BatchRequest(invocations=[ToolInvocation(tool_name="nonexistent", arguments={})])
     response = await gateway.execute_batch_operations(request)
 
     assert response.failed == 1
@@ -77,9 +74,7 @@ async def test_parallel_execution_is_faster_than_sequential(gateway: MCPGateway)
 
     gateway.register("slow", slow_tool)
 
-    invocations = [
-        ToolInvocation(tool_name="slow", arguments={"delay": 0.1}) for _ in range(5)
-    ]
+    invocations = [ToolInvocation(tool_name="slow", arguments={"delay": 0.1}) for _ in range(5)]
     request = BatchRequest(invocations=invocations)
 
     start = time.perf_counter()
@@ -94,6 +89,7 @@ async def test_parallel_execution_is_faster_than_sequential(gateway: MCPGateway)
 @pytest.mark.asyncio
 async def test_one_failure_does_not_block_others(gateway: MCPGateway) -> None:
     """A tool that raises should not prevent other tools from succeeding."""
+
     def broken() -> str:
         raise RuntimeError("intentional failure")
 
@@ -144,9 +140,7 @@ async def test_sync_handler_dispatched_via_executor(gateway: MCPGateway) -> None
         return "sync_ok"
 
     gateway.register("sync_tool", sync_tool)
-    request = BatchRequest(
-        invocations=[ToolInvocation(tool_name="sync_tool", arguments={})]
-    )
+    request = BatchRequest(invocations=[ToolInvocation(tool_name="sync_tool", arguments={})])
     response = await gateway.execute_batch_operations(request)
     assert response.successful == 1
     assert response.results[0].result == "sync_ok"
@@ -161,17 +155,21 @@ def test_get_tool_definition_schema() -> None:
     assert "invocations" in defn["input_schema"]["properties"]
 
 
-def test_token_savings_estimate_scales_with_batch_size(gateway: MCPGateway) -> None:
+@pytest.mark.asyncio
+async def test_token_savings_estimate_scales_with_batch_size(gateway: MCPGateway) -> None:
     """Estimated token savings should increase with batch size."""
+    gateway.register("noop", lambda: "ok")
 
-    async def _run(n: int) -> int:
-        gateway.register("noop", lambda: "ok")
-        req = BatchRequest(
-            invocations=[ToolInvocation(tool_name="noop", arguments={}) for _ in range(n)]
-        )
-        resp = await gateway.execute_batch_operations(req)
-        return resp.estimated_tokens_saved
+    req1 = BatchRequest(
+        invocations=[ToolInvocation(tool_name="noop", arguments={}) for _ in range(1)]
+    )
+    resp1 = await gateway.execute_batch_operations(req1)
+    savings_1 = resp1.estimated_tokens_saved
 
-    savings_1 = asyncio.get_event_loop().run_until_complete(_run(1))
-    savings_5 = asyncio.get_event_loop().run_until_complete(_run(5))
+    req5 = BatchRequest(
+        invocations=[ToolInvocation(tool_name="noop", arguments={}) for _ in range(5)]
+    )
+    resp5 = await gateway.execute_batch_operations(req5)
+    savings_5 = resp5.estimated_tokens_saved
+
     assert savings_5 > savings_1

@@ -1,10 +1,12 @@
 from typing import Any, Dict, List, Optional
 
+
 class ToolRegistry:
     """
     Maintains a catalog of all available tools across all MCP servers.
     Provides routing information for the BatchExecutor.
     """
+
     def __init__(self):
         # tool_name -> server_name
         self._tool_to_server: Dict[str, str] = {}
@@ -16,7 +18,7 @@ class ToolRegistry:
         tool_name = tool_schema.get("name")
         if not tool_name:
             raise ValueError("Tool schema must contain a 'name'")
-            
+
         self._tool_to_server[tool_name] = server_name
         self._tool_schemas[tool_name] = tool_schema
 
@@ -27,7 +29,7 @@ class ToolRegistry:
     def get_all_tool_schemas(self) -> List[Dict[str, Any]]:
         """Get schemas for all registered tools."""
         return list(self._tool_schemas.values())
-        
+
     def get_tool_schema(self, tool_name: str) -> Optional[Dict[str, Any]]:
         """Get schema for a specific tool."""
         return self._tool_schemas.get(tool_name)

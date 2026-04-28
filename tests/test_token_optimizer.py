@@ -8,14 +8,13 @@ from pathlib import Path
 
 import pytest
 
-from engine.token_optimizer import (
+from engine.optimization.token_optimizer import (
     TokenOptimizer,
     apply_diff_patch,
+    estimate_tokens,
     get_code_skeleton,
     prune_terminal_output,
-    estimate_tokens,
 )
-
 
 # ---------------------------------------------------------------------------
 # prune_terminal_output
@@ -97,7 +96,8 @@ def test_apply_diff_patch_replaces_first_only(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-_SAMPLE_SOURCE = textwrap.dedent("""
+_SAMPLE_SOURCE = textwrap.dedent(
+    """
     class Foo:
         \"\"\"A sample class.\"\"\"
 
@@ -114,7 +114,8 @@ _SAMPLE_SOURCE = textwrap.dedent("""
 
     def simple(a, b):
         return a + b
-""")
+"""
+)
 
 
 def test_get_code_skeleton_file_not_found() -> None:

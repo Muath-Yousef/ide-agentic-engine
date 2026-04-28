@@ -82,12 +82,23 @@ def test_batch_response_counts_match() -> None:
 def test_enum_tools_in_schema() -> None:
     """All declared tool names should appear in the schema enum."""
     declared_tools = {
-        "read_file", "write_file", "apply_diff", "run_command",
-        "search_web", "get_code_skeleton", "gdrive_read",
-        "wazuh_query", "nuclei_scan",
+        "read_file",
+        "write_file",
+        "apply_diff_patch",
+        "run_command",
+        "search_web",
+        "get_code_skeleton",
+        "gdrive_read",
+        "wazuh_query",
+        "nuclei_scan",
+        "git_status",
+        "git_create_branch",
+        "git_commit",
+        "git_push",
     }
     schema_enum = set(
-        BATCH_TOOL_DEFINITION["input_schema"]["properties"]["invocations"]
-        ["items"]["properties"]["tool_name"]["enum"]
+        BATCH_TOOL_DEFINITION["input_schema"]["properties"]["invocations"]["items"]["properties"][
+            "tool_name"
+        ]["enum"]
     )
     assert declared_tools == schema_enum

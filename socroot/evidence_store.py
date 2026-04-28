@@ -23,7 +23,8 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-_EVIDENCE_ROOT = Path("knowledge/evidence")
+_PROJECT_ROOT = Path(__file__).parent.parent
+_EVIDENCE_ROOT = _PROJECT_ROOT / "knowledge/evidence"
 _EVIDENCE_ROOT.mkdir(parents=True, exist_ok=True)
 
 

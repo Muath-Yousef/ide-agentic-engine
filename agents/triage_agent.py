@@ -36,10 +36,21 @@ Classify the user request into exactly one of:
 Respond with structured JSON only."""
 
 
+def _heuristic_triage(description: str) -> str:
+    """Zero-cost keyword-based triage."""
+    d = description.lower()
+    if any(k in d for k in ["ecc", "nca", "compliance", "control", "audit"]):
+        return "compliance"
+    if any(k in d for k in ["pdf", "report", "summary", "document"]):
+        return "report_gen"
+    if any(k in d for k in ["code", "script", "fix", "python", "javascript"]):
+        return "code_generation"
+    return "simple_qa"
+
+
 async def classify_task(description: str) -> TriageResult:
     """
-    Use Haiku to classify the task description.
-
+    Use LLM to classify the task description.
     Falls back to heuristics if the LLM call fails.
     """
     from engine.llm_manager import LLMManager
@@ -53,17 +64,13 @@ async def classify_task(description: str) -> TriageResult:
             response_model=TriageResult,
             system=_TRIAGE_SYSTEM,
             use_result_cache=True,
-            use_prompt_cache=False,  # triage prompts are short, caching not worthwhile
+            use_prompt_cache=False,
         )
-        logger.info(
-            "LLM triage: type=%s confidence=%.2f", result.task_type, result.confidence
-        )
+        logger.info("LLM triage: type=%s confidence=%.2f", result.task_type, result.confidence)
         return result
 
     except Exception as exc:
         logger.warning("LLM triage failed (%s) — falling back to heuristics", exc)
-        from engine.orchestrator import _heuristic_triage
-
         heuristic_type = _heuristic_triage(description)
         return TriageResult(
             task_type=heuristic_type,  # type: ignore[arg-type]

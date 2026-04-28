@@ -116,42 +116,109 @@ def _build_pdf(
     narrative: ReportNarrative,
 ) -> None:
     """
-    Build a PDF using ReportLab.  Falls back to plain text if unavailable.
+    Build a PDF using ReportLab with professional styling.
     """
     try:
+        from reportlab.lib import colors
         from reportlab.lib.pagesizes import A4
-        from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+        from reportlab.lib.units import inch
+        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-        doc = SimpleDocTemplate(str(path), pagesize=A4)
+        doc = SimpleDocTemplate(
+            str(path), pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72
+        )
+
         styles = getSampleStyleSheet()
+        # Custom styles
+        title_style = ParagraphStyle(
+            "CustomTitle",
+            parent=styles["Title"],
+            fontSize=24,
+            textColor=colors.HexColor("#1e3a8a"),  # Deep blue
+            spaceAfter=20,
+        )
+        h2_style = ParagraphStyle(
+            "CustomH2",
+            parent=styles["Heading2"],
+            textColor=colors.HexColor("#0f172a"),
+            borderPadding=(0, 0, 4, 0),
+            borderColor=colors.HexColor("#cbd5e1"),
+            borderWidth=1,
+            spaceAfter=10,
+        )
+        normal_style = styles["Normal"]
+        cell_style = ParagraphStyle("CellStyle", parent=styles["Normal"], fontSize=9)
+
         story = []
 
-        story.append(Paragraph(f"NCA ECC Compliance Report — {client_id}", styles["Title"]))
-        story.append(Paragraph(f"Target: {target}", styles["Normal"]))
-        story.append(Spacer(1, 12))
+        # Title Page
+        story.append(Paragraph(f"NCA ECC Compliance Report", title_style))
+        story.append(Paragraph(f"<b>Client:</b> {client_id}", styles["Heading3"]))
+        story.append(Paragraph(f"<b>Target:</b> {target}", styles["Heading3"]))
+        story.append(Spacer(1, 30))
 
+        # Narrative Sections
         for section_title, text in [
             ("Executive Summary", narrative.executive_summary),
             ("Risk Overview", narrative.risk_overview),
             ("Remediation Roadmap", narrative.remediation_roadmap),
             ("Conclusion", narrative.conclusion),
         ]:
-            story.append(Paragraph(section_title, styles["Heading2"]))
-            story.append(Paragraph(text, styles["Normal"]))
-            story.append(Spacer(1, 8))
+            story.append(Paragraph(section_title, h2_style))
+            story.append(Paragraph(text, normal_style))
+            story.append(Spacer(1, 15))
 
+        # Findings Table
         if findings:
-            story.append(Paragraph("Findings", styles["Heading2"]))
-            table_data = [["Severity", "Title", "CVSS", "NCA Controls"]]
+            story.append(Paragraph("Detailed Findings", h2_style))
+            story.append(Spacer(1, 10))
+
+            # Header
+            table_data = [
+                [
+                    Paragraph("<b>Severity</b>", cell_style),
+                    Paragraph("<b>Title</b>", cell_style),
+                    Paragraph("<b>CVSS</b>", cell_style),
+                    Paragraph("<b>NCA Controls</b>", cell_style),
+                ]
+            ]
+
             for f in findings:
-                table_data.append([
-                    f.get("severity", ""),
-                    f.get("title", "")[:60],
-                    str(f.get("cvss_score", "")),
-                    ", ".join(f.get("nca_control_ids", [])),
-                ])
-            table = Table(table_data, hAlign="LEFT")
+                sev = str(f.get("severity", "UNKNOWN")).upper()
+                sev_color = (
+                    "#ef4444"
+                    if sev == "CRITICAL"
+                    else "#f97316" if sev == "HIGH" else "#eab308" if sev == "MEDIUM" else "#3b82f6"
+                )
+
+                table_data.append(
+                    [
+                        Paragraph(f'<font color="{sev_color}"><b>{sev}</b></font>', cell_style),
+                        Paragraph(f.get("title", ""), cell_style),
+                        Paragraph(str(f.get("cvss_score", "")), cell_style),
+                        Paragraph(", ".join(f.get("nca_control_ids", [])), cell_style),
+                    ]
+                )
+
+            col_widths = [0.8 * inch, 3.0 * inch, 0.6 * inch, 1.8 * inch]
+            table = Table(table_data, colWidths=col_widths, repeatRows=1)
+
+            table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f8fafc")),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+                        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("INNERGRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#e2e8f0")),
+                        ("BOX", (0, 0), (-1, -1), 0.25, colors.HexColor("#94a3b8")),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                        ("TOPPADDING", (0, 0), (-1, 0), 12),
+                    ]
+                )
+            )
+
             story.append(table)
 
         doc.build(story)
