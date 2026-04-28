@@ -1,8 +1,8 @@
 import argparse
 from rich.console import Console
 from rich.panel import Panel
-from engine.agent_orchestrator import AgentOrchestrator
-from engine.workspace_context import WorkspaceContext
+from core.orchestrator import AgentOrchestrator
+from core.context_manager import WorkspaceContext
 
 console = Console()
 

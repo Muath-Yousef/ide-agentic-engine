@@ -2,7 +2,7 @@ import operator
 from typing import Annotated, Sequence, TypedDict
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from langgraph.graph import StateGraph, END
-from engine.terminal_executor import TerminalExecutor
+from servers.terminal_server import TerminalExecutor
 
 # Define Agent State
 class AgentState(TypedDict):
