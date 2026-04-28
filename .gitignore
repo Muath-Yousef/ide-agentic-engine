@@ -22,3 +22,22 @@ __pycache__/
 
 # API Keys and Profiles
 profiles/api_keys.yaml
+venv/
+.env
+
+# Environment and Secrets
+.env
+.env.*
+!.env.example
+*.enc
+*.gpg
+
+# IDE Engine Profiles
+profiles/*.yaml
+!profiles/*.yaml.example
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ipython/
