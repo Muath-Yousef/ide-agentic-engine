@@ -19,3 +19,6 @@ __pycache__/
 
 # Project specific
 .secrets.baseline
+
+# API Keys and Profiles
+profiles/api_keys.yaml
