@@ -6,6 +6,8 @@ from gateway.batch_executor import BatchExecutor
 from providers.router import ProviderRouter
 from pydantic import BaseModel, Field
 
+from core.ide_context import IDEContext
+
 # Define schema for the LLM output (structured generation)
 class AgentAction(BaseModel):
     thought: str = Field(..., description="The reasoning behind the action.")
@@ -18,9 +20,10 @@ class AgentOrchestrator:
     The Brain of the IDE Agentic Engine.
     Uses LangGraph to orchestrate Plan -> Execute -> Observe cycles.
     """
-    def __init__(self, batch_executor: BatchExecutor, router: ProviderRouter):
+    def __init__(self, batch_executor: BatchExecutor, router: ProviderRouter, ide_context: IDEContext = None):
         self.batch_executor = batch_executor
         self.router = router
+        self.ide_context = ide_context
         self.graph = self._build_graph()
 
     def _build_graph(self):
@@ -57,8 +60,15 @@ class AgentOrchestrator:
         system_prompt = (
             "You are an advanced AI Agentic IDE Engine. "
             "You must use the 'batch_execute' tool to perform actions in parallel. "
-            "Think carefully, plan your steps, and execute."
+            "Think carefully, plan your steps, and execute.\n\n"
         )
+        
+        if self.ide_context:
+            system_prompt += self.ide_context.format_context_prompt(
+                active_file=state.get("active_file", ""),
+                cursor_line=state.get("cursor_line", 0),
+                open_files=state.get("open_files", [])
+            )
         
         formatted_messages = [{"role": "system", "content": system_prompt}] + messages
         

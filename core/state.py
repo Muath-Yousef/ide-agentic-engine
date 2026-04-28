@@ -15,3 +15,8 @@ class AgentState(TypedDict):
     iteration: int
     max_iterations: int
     final_response: str
+    
+    # IDE Context
+    active_file: str
+    cursor_line: int
+    open_files: List[str]
