@@ -1,5 +1,5 @@
 {
-  "name": "SOC Root Dev Environment",
+  "name": "IDE Agentic Engine Dev Environment",
   "dockerComposeFile": "../deployment/docker-compose.yml",
   "service": "dev",
   "workspaceFolder": "/workspace",

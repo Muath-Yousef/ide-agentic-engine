@@ -33,12 +33,18 @@ We have successfully established a highly secure, production-grade infrastructur
 
 ```text
 /media/kyrie/SOCROOT/
+├── cli.py                 # Entry point for testing the Agent Engine
+├── engine/                # Core Agentic IDE components
+│   ├── agent_orchestrator.py  # LangGraph state machine (Plan -> Execute -> Observe)
+│   ├── mcp_gateway.py         # Model Context Protocol (MCP) client
+│   ├── terminal_executor.py   # Secure bash command wrapper
+│   └── workspace_context.py   # Reader for .cursorrules / .antigravityrules
 ├── .devcontainer/         # Dev container configuration for isolated environments
 ├── .gemini/antigravity/   # Scaffolding for AI agent context (skills, agents, mcp)
 ├── init_project.sh        # Master setup script
 ├── justfile               # Task runner configuration
 ├── PROJECT_SPEC.md        # High-level project definition and configuration
-├── requirements.txt       # Base Python dependencies
+├── requirements.txt       # Engine dependencies (langgraph, langchain-core, etc.)
 ├── .env.template          # Template for required environment variables
 └── HANDOFF.md             # This document
 ```
@@ -52,7 +58,11 @@ We have successfully established a highly secure, production-grade infrastructur
     source venv/bin/activate
     # Or open the project in an editor supporting DevContainers.
     ```
-2.  **Manage Secrets:**
+2.  **Test the Agent Engine:**
+    ```bash
+    python cli.py --prompt "Create a React login page"
+    ```
+3.  **Manage Secrets:**
     ```bash
     just decrypt  # Requires GPG passphrase to expose .env temporarily
     just encrypt  # Re-encrypts changes
@@ -63,8 +73,9 @@ We have successfully established a highly secure, production-grade infrastructur
 
 ## ⏭️ Next Steps
 
-With a rock-solid infrastructure in place, the immediate next steps focus on the core architecture of the IDE Agentic Engine:
+With the foundational `engine` package and CLI entry point in place, the immediate next steps are:
 
-1.  **Core Architecture Design**: Design the primary orchestration loop that will manage interactions between the LLM, the local file system, and the terminal environment.
-2.  **MCP (Model Context Protocol) Integration**: Define and implement the necessary custom MCP servers that will grant the engine its "hands" and "eyes" (e.g., advanced file parsing, syntax tree analysis, seamless git integration).
-3.  **Agent Skill Implementation**: Begin populating `.gemini/antigravity/skills/` with specific operational directives for the engine (e.g., how to read codebases, how to safely execute terminal commands).
+1.  **LLM Integration**: Connect `agent_orchestrator.py` to an actual LLM (e.g., using `langchain-google-genai` or `langchain-openai`) to replace the mock logic.
+2.  **Tool Binding**: Bind the `TerminalExecutor` and file system actions as valid tools for the LLM to invoke within the LangGraph flow.
+3.  **MCP Gateway Implementation**: Fully implement `mcp_gateway.py` using the `modelcontextprotocol` Python SDK to discover and interact with external MCP servers (e.g., filesystem, git).
+
