@@ -1,52 +1,45 @@
+import asyncio
 import subprocess
-import os
-from typing import Dict, Any, Tuple
+from mcp.server.fastmcp import FastMCP
 
-class TerminalExecutor:
+mcp = FastMCP("terminal_server")
+
+@mcp.tool()
+async def run_command(command: str, cwd: str = ".", prune_lines: int = 100) -> str:
     """
-    Secure wrapper for executing bash commands within the workspace.
+    Run a terminal command. 
+    If output is too long, it prunes the middle to save tokens.
     """
-    def __init__(self, workspace_dir: str = "."):
-        self.workspace_dir = os.path.abspath(workspace_dir)
-
-    def execute(self, command: str, timeout: int = 30) -> Tuple[int, str, str]:
-        """
-        Executes a shell command and returns the exit code, stdout, and stderr.
-        """
-        try:
-            # We use shell=True here because agents often generate bash pipelines
-            # Note: In a real production system, consider security implications
-            # and potentially use a sandbox or stricter parsing.
-            process = subprocess.Popen(
-                command,
-                shell=True,
-                cwd=self.workspace_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-            )
-            
-            stdout, stderr = process.communicate(timeout=timeout)
-            return process.returncode, stdout, stderr
-            
-        except subprocess.TimeoutExpired:
-            process.kill()
-            stdout, stderr = process.communicate()
-            return -1, stdout, f"Command timed out after {timeout} seconds.\n{stderr}"
-        except Exception as e:
-            return -2, "", str(e)
-
-    def run_as_tool(self, command: str) -> str:
-        """
-        Helper method specifically designed for the Agent to use as a Tool.
-        Returns a formatted string containing both stdout and stderr for the agent to observe.
-        """
-        exit_code, stdout, stderr = self.execute(command)
+    try:
+        process = await asyncio.create_subprocess_shell(
+            command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=cwd
+        )
+        stdout, stderr = await process.communicate()
         
-        output = f"Exit Code: {exit_code}\n"
-        if stdout:
-            output += f"STDOUT:\n{stdout}\n"
-        if stderr:
-            output += f"STDERR:\n{stderr}\n"
+        output = stdout.decode()
+        error = stderr.decode()
+        
+        full_output = ""
+        if output:
+            full_output += f"STDOUT:\n{output}\n"
+        if error:
+            full_output += f"STDERR:\n{error}\n"
             
-        return output
+        # Pruning logic for Phase 0 (Token Optimizer preview)
+        lines = full_output.splitlines()
+        if len(lines) > prune_lines:
+            half = prune_lines // 2
+            pruned_output = "\n".join(lines[:half])
+            pruned_output += f"\n... [{len(lines) - prune_lines} lines omitted] ...\n"
+            pruned_output += "\n".join(lines[-half:])
+            return pruned_output
+            
+        return full_output
+    except Exception as e:
+        return f"Failed to execute command: {e}"
+
+if __name__ == "__main__":
+    mcp.run()
