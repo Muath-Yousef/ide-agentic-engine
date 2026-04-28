@@ -1,40 +1,46 @@
-# Project Handoff: SOCROOT v2.0 (Post-Hardening Phase)
+# 🚀 SOCROOT Project Handoff
 
-This document summarizes the current state of **SOCROOT** following the successful implementation of the 4-Axis Hardening Plan.
+## 📌 Status
+**Current Phase:** Phase 3 (Completed)
+**System State:** The `SOCROOT` Monorepo is successfully unified, structurally sound, and capable of end-to-end autonomous incident remediation. 
 
-## ✅ Major Accomplishments
+## 🏗️ What Was Built (The Journey)
 
-### 1. Hardened Orchestration & Multi-Provider Fallback
-- **Status**: Production-Ready.
-- **Details**: Refactored `GeminiProvider` for native schema support and `OpenAIProvider` for deferred initialization.
-- **Key Rotation**: Implemented `APIKeyPool` with **Round-Robin rotation** and automatic **429 Cooldown** recovery.
-- **New Providers**: Added `GroqProvider` (fast triage) and `DeepSeekProvider` (code remediation).
+### Phase 0: Workspace Initialization (Monorepo Hardening)
+- **Goal:** Unify `ide-agentic-engine` and `Project-Synapse-SOC-Factory` into a single, cohesive unit.
+- **Action:** Created a `uv` workspace at the root level. Both original repositories were converted into standard Python packages inside the `packages/` directory (`ide-engine` and `soc-core`). Dependency conflicts (like `google-genai`) were resolved natively.
 
-### 2. Human-in-the-Loop (HITL) & Persistence
-- **Status**: Fully Integrated.
-- **Details**: Critical tools (e.g., `run_command`, `git_push`) now require explicit CLI approval.
-- **Persistence**: Switched to **Redis** for session storage, allowing HITL states to survive engine restarts.
+### Phase 1: The Bridge Layer (MCP Ecosystem)
+- **Goal:** Provide a standardized way for AI agents to interact with production SOC services.
+- **Action:** Created `packages/shared_mcps/`. We implemented three Core MCP Servers using `FastMCP`:
+  1. `socroot_state_server.py`: Client and system health management.
+  2. `socroot_evidence_chain.py`: Tamper-evident audit and integrity verification.
+  3. `socroot_development.py`: Dynamic skill generation and local IDE testing.
 
-### 3. Real Security Tool Execution
-- **Status**: Verified.
-- **Adapters**:
-    - **Nuclei**: Automated scanning with subprocess-based execution.
-    - **Wazuh**: Full SIEM integration for alert polling and endpoint interrogation.
+### Phase 2: Autonomous Skill Expansion
+- **Goal:** Transform the agent from a generic LLM into a domain expert.
+- **Action:** Created `packages/shared_skills/` to hold Markdown-based expert logic templates:
+  - `soc_triage.md` (Wazuh alert parsing and scoring)
+  - `incident_response.md` (Containment and eradication protocols)
+  - `iac_management.md` (Terraform/Ansible deployment patterns)
+- **Integration:** Modified `AgentOrchestrator` to automatically scan and inject these skills into the system prompt upon instantiation.
 
-### 4. Event-Driven Auto-Remediation
-- **Status**: Live.
-- **Webhook Listener**: FastAPI-based listener (`ide-agent monitor`) successfully maps SIEM alerts to autonomous remediation sessions.
+### Phase 3: Self-Healing Operations (The Master Hook)
+- **Goal:** Connect incoming threats directly to the brain of the IDE Engine.
+- **Action:** Refactored `webhook_listener.py` to include `dispatch_remediation_agent`. 
+- **Workflow:** When a Wazuh webhook arrives, the dispatcher:
+  1. Logs the incident start in the `soc-core` `EvidenceStore`.
+  2. Spawns an `AgentOrchestrator` session in the background.
+  3. The Agent uses the injected `soc_triage` skill to plan a response and requests human approval for critical actions.
+  4. The Dispatcher logs the session state (Paused/Completed) back to the Evidence Store.
 
-## 📂 Current Infrastructure State
-- **Redis**: Running via Docker Compose (`deployment/docker-compose.yml`).
-- **Dependencies**: Managed via `uv` (includes `fastapi`, `uvicorn`, `instructor`, etc.).
-- **Configuration**: Centralized in `profiles/api_keys.yaml` for multi-key rotation.
+## 🧪 Verification & Results
+We created and executed a master integration test script (`test_system_integration.py` and `test_master_hook.py`) which successfully proved:
+1. `uv` handles the multi-package workspace flawlessly.
+2. The `AgentOrchestrator` successfully reads from `shared_skills`.
+3. The Master Hook API accepts simulated JSON Wazuh payloads and dispatches background remediation tasks while correctly interacting with the SOC Evidence Chain.
 
-## ⏭️ Next Milestones
-1.  **Production Keys**: Replace free-tier keys with production-tier keys to eliminate rate-limit pauses.
-2.  **Dashboard Integration**: Connect the Webhook Listener results to a frontend UI for SOC analysts.
-3.  **Advanced Triage**: Fine-tune the `TriageAgent` using Groq to reduce initial response latency.
-
----
-**Current Environment:** `/media/kyrie/SOCROOT`
-**Active Process:** `ide-agent monitor --port 8000`
+## ⏭️ Next Steps for the Next Developer/Agent
+1. **Frontend Integration:** Connect the React/Next.js dashboard (if any) to the `AgentOrchestrator` session API so SOC Analysts can view pending agent plans and click "Approve" (HITL).
+2. **Production Deployment:** Containerize the `ide-engine` webhook listener and deploy it alongside the `soc-core` platform on the Hetzner/AWS instances.
+3. **Skill Refinement:** Expand the `shared_skills/` directory with more specialized runbooks (e.g., `cloud_breach_response.md`, `ransomware_containment.md`).

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "shared-mcps"
+version = "0.1.0"
+description = "Shared MCP servers bridging IDE Engine and SOC Core"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0",
+    "pydantic>=2.0.0",
+    "fastmcp>=0.1.0"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["servers"]

@@ -1,59 +1,58 @@
 # SOCROOT: Advanced Agentic SOAR Engine 🛡️🤖
 
-**SOCROOT** is a production-grade, autonomous security orchestration and remediation engine. It transforms static security alerts into active defense maneuvers by leveraging advanced LLM agents to plan, validate, and execute security fixes.
+**SOCROOT** is a production-grade, autonomous security orchestration and remediation engine. It transforms static security alerts into active defense maneuvers by leveraging advanced LLM agents to plan, validate, and execute security fixes. 
 
-## 🚀 Core Capabilities
+Recently, the project has evolved into a **Unified Monorepo**, seamlessly bridging the development layer (IDE Agentic Engine) and the production layer (SOC Core Platform).
 
-### 1. Autonomous Auto-Remediation (Axis 1)
+## 🚀 The Monorepo Architecture
+
+The repository is structured as a `uv` workspace to ensure dependency isolation and rapid execution:
+
+- **`packages/ide-engine/`**: The brain of the operation. Contains the `AgentOrchestrator`, LLM provider routing, and the FastAPI Webhook Listener.
+- **`packages/soc-core/`**: The production platform. Manages clients, evidence chains, and audit-grade data storage.
+- **`packages/shared_mcps/`** *(Phase 1)*: The Bridge Layer. Provides standardized Model Context Protocol (MCP) servers (`State`, `Evidence`, `Development`) allowing agents to interact with production SOC features safely.
+- **`packages/shared_skills/`** *(Phase 2)*: The Intelligence Layer. A library of expert markdown templates (`soc_triage`, `incident_response`, `iac_management`) that are dynamically injected into agents, turning them into domain experts.
+
+## 🔥 Key Features
+
+### 1. The "Master Hook" (Self-Healing Operations)
+The system is fully autonomous. When Wazuh (or any SIEM) detects a critical vulnerability, it sends a webhook to the `ide-engine`. The **Master Hook Dispatcher** intercepts this, logs it to the `EvidenceStore`, and immediately triggers the `AgentOrchestrator` to begin triage and remediation without human intervention.
+
+### 2. Autonomous Auto-Remediation
 - **Intelligent Planning**: Uses multi-provider LLMs (Gemini, OpenAI, DeepSeek, Groq) to generate surgical remediation plans.
-- **Provider Resilience**: Implements a robust **Key Rotation Pool** with Round-Robin scheduling to bypass rate limits (429 errors).
-- **Safety First**: Native role mapping and schema enforcement ensure structured, predictable agent behavior.
+- **Shared Skills**: Agents read from `shared_skills` to apply best-practice response protocols dynamically.
 
-### 2. Human-in-the-Loop (Axis 2)
-- **Critical Action Guards**: Automatically pauses execution and requests human approval for sensitive operations (`git_push`, `run_command`, etc.).
-- **Persistent Sessions**: State is managed via **Redis**, allowing sessions to survive restarts and ensuring long-running remediation tasks are never lost.
-
-### 3. Real-World Tool Integration (Axis 3)
-- **Nuclei Adapter**: Automated vulnerability scanning with real-time JSON result parsing.
-- **Wazuh Adapter**: Deep integration with SIEM for alert retrieval, agent inventory, and endpoint interrogation.
-- **Secure Execution**: All tools run in isolated sub-processes with strict error handling and output pruning.
-
-### 4. Event-Driven Monitoring (Axis 4)
-- **Webhook Listener**: A high-performance FastAPI service that triggers remediation workflows the moment an alert is received from external systems (SIEM/EDR).
+### 3. Human-in-the-Loop (HITL)
+- **Critical Action Guards**: Automatically pauses execution and requests human approval for sensitive operations (e.g., executing system commands, isolating networks).
+- **Audit-Grade Evidence**: Every step the agent takes, including its thought process and human approvals, is hashed and stored in the tamper-evident `EvidenceStore`.
 
 ## 🛠️ Getting Started
 
 ### Prerequisites
 - Python 3.10+
-- Docker & Docker Compose (for Redis)
-- `uv` for lightning-fast dependency management
+- `uv` for lightning-fast monorepo dependency management
 
 ### Installation
 ```bash
 git clone <repo-url>
 cd SOCROOT
-uv pip install -e .
+# Sync the entire workspace environment
+uv sync
 ```
 
 ### Starting the Engine
-1. **Start Infrastructure**:
+1. **Launch the Master Hook (Webhook Listener)**:
    ```bash
-   docker-compose -f deployment/docker-compose.yml up -d redis
+   uv run python packages/ide-engine/engine/webhook_listener.py
    ```
-2. **Launch Monitoring Listener**:
-   ```bash
-   ide-agent monitor --port 8000
-   ```
-3. **Trigger Manual Remediation**:
-   ```bash
-   ide-agent remediate --finding-id CVE-2024-XXXX --client ExampleCorp
-   ```
+2. **Trigger Auto-Remediation via Webhook**:
+   Send a JSON payload simulating a Wazuh alert to `http://0.0.0.0:8000/webhook/wazuh`. The engine will automatically catch it, start an evidence chain, and deploy an agent.
 
-## 📂 Architecture
-- `core/`: State management, Orchestrator, and KeyPool.
-- `agents/`: Specialized agent logic (Remediation, Triage).
-- `engine/providers/`: Resilient LLM adapters (Gemini, OpenAI, Groq, DeepSeek).
-- `socroot/`: Security adapters and Evidence Store.
+## 🧪 Testing the Integration
+A master test script is provided to verify the workspace, skill loading, and MCP connections:
+```bash
+uv run python packages/test_system_integration.py
+```
 
 ---
 *Built with ❤️ by the SOCROOT Engineering Team.*

@@ -1,0 +1,27 @@
+billing:
+  contract_end: '2027-04-09'
+  contract_start: '2026-04-09'
+  currency: USD
+  monthly_fee: 1500
+  status: active
+client_name: BankCo
+compliance_requirements:
+- NCA_ECC
+contact_email: sec@bankco.example.com
+industry: Banking
+infrastructure:
+  os: []
+  platform: []
+  web_server: []
+log_cap_gb_day: 10
+primary_target: hackerone.com
+scan_frequency: weekly
+security_profile:
+  risk_tolerance: low
+service_tier: soc_standard
+tech_stack_keywords:
+- Apache
+- Ubuntu
+- OpenSSH
+- Oracle
+whitelisted_ips: []
