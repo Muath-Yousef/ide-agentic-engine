@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+# Load environment variables from .env BEFORE any other imports
+load_dotenv()
+
 import logging
 import uuid
 import asyncio
