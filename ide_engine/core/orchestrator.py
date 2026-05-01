@@ -98,9 +98,6 @@ class AgentOrchestrator:
         iteration = state.get("iteration", 0) + 1
         messages = state.get("messages", [])
 
-        provider = self.router.route(task_complexity="medium")
-        print(f"DEBUG: Selected Provider: {getattr(provider, '__class__', {}).__name__}")
-
         tools = [self.batch_executor.get_batch_tool_schema()]
 
         system_prompt = (
@@ -128,11 +125,15 @@ class AgentOrchestrator:
         formatted_messages = [{"role": "system", "content": system_prompt}] + messages
 
         try:
-            # We use structured output to enforce the AgentAction schema
-            response: AgentAction = await provider.get_structured_output(
-                messages=formatted_messages,
-                response_model=AgentAction,
-                tools=tools,
+            # route_with_fallback() selects the best provider and automatically
+            # retries on 401 (bad key) or 429 (quota) with the next available one.
+            response: AgentAction = await self.router.route_with_fallback(
+                lambda p: p.get_structured_output(
+                    messages=formatted_messages,
+                    response_model=AgentAction,
+                    tools=tools,
+                ),
+                task_complexity="medium",
             )
             if not response:
                 raise ValueError("LLM returned an empty response.")
