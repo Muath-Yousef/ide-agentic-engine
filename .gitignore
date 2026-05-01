@@ -1,45 +1,10 @@
-# Environments
+# Secrets
 .env
-.env.*
-venv/
-env/
-ENV/
-
-# Python
+.shared-secrets.env
+*.env
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Project specific
-.secrets.baseline
-
-# API Keys and Profiles
-profiles/api_keys.yaml
-venv/
-.env
-
-# Environment and Secrets
-.env
-.env.*
-!.env.example
-*.enc
-*.gpg
-
-# IDE Engine Profiles
-profiles/*.yaml
-!profiles/*.yaml.example
-
-# Virtual Environments
-venv/
 .venv/
-env/
-ipython/
-api_keys.yaml
-api_keys.yaml
+venv/
+.uv/
+htmlcov/
+

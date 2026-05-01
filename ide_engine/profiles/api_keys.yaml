@@ -1,0 +1,24 @@
+services:
+  gemini:
+    keys:
+    - retry_after: null
+      status: active
+      value: AIzaSyA7_jveIeESbAHJxR4vxXA75WbZLwvWQx4
+    - retry_after: '2026-04-28T23:06:28.112830'
+      status: cooldown
+      value: AIzaSyBXnkhwilUKHtwXMiA-5V4QeWTSuU0WaYg
+  groq:
+    keys:
+    - retry_after: null
+      status: active
+      value: REPLACE_ME
+  openai:
+    keys:
+    - retry_after: null
+      status: active
+      value: REPLACE_ME
+  virustotal:
+    keys:
+    - retry_after: null
+      status: exhausted
+      value: placeholder_key
